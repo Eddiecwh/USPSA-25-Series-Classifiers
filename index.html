@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HF Score Calculator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+      }
+      select,
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: #4caf50;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #e8f5e8;
+        border: 2px solid #4caf50;
+        border-radius: 5px;
+        display: none;
+      }
+      .result h3 {
+        margin-top: 0;
+        color: #2e7d32;
+      }
+      .error {
+        background-color: #ffebee;
+        border-color: #f44336;
+        color: #c62828;
+      }
+      .calculation-details {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>HF Score Calculator</h1>
+
+      <form id="hfForm">
+        <div class="form-group">
+          <label for="stage">Stage:</label>
+          <select id="stage" required>
+            <option value="">Select Stage</option>
+            <option value="25-01">25-01</option>
+            <option value="25-02">25-02</option>
+            <option value="25-03">25-03</option>
+            <option value="25-04">25-04</option>
+            <option value="25-05">25-05</option>
+            <option value="25-06">25-06</option>
+            <option value="25-07">25-07</option>
+            <option value="25-08">25-08</option>
+            <option value="25-09">25-09</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="division">Division:</label>
+          <select id="division" required>
+            <option value="">Select Division</option>
+            <option value="CO">CO</option>
+            <option value="LO">LO</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="score">Your HF Score:</label>
+          <input
+            type="number"
+            id="score"
+            step="0.01"
+            min="0"
+            required
+            placeholder="Enter your HF score (e.g., 5)"
+          />
+        </div>
+
+        <button type="submit">Calculate Percentage</button>
+      </form>
+
+      <div id="result" class="result">
+        <h3>Calculation Result</h3>
+        <div id="resultContent"></div>
+      </div>
+    </div>
+
+    <script>
+      const HHF_CO = {
+        "25-01": 8.5825,
+        "25-02": 11.2629,
+        "25-03": 8.9185,
+        "25-04": 11.196,
+        "25-05": 10.309,
+        "25-06": 10.3997,
+        "25-07": 11.0236,
+        "25-08": 10.3689,
+        "25-09": 7.864,
+      };
+
+      const HHF_LO = {
+        "25-01": 8.5437,
+        "25-02": 10.9212,
+        "25-03": 8.9944,
+        "25-04": 10.8815,
+        "25-05": 10.2175,
+        "25-06": 10.484,
+        "25-07": 11.3322,
+        "25-08": 10.2798,
+        "25-09": 8.0525,
+      };
+
+      function getScores(stage, score, division) {
+        const hhfMap = division === "CO" ? HHF_CO : HHF_LO;
+        const hhf = hhfMap[stage];
+
+        if (!hhf) {
+          throw new Error(`Stage ${stage} not found for division ${division}`);
+        }
+
+        const percentage = (score / hhf) * 100;
+
+        return {
+          hf: score,
+          hhf: hhf,
+          percentage: percentage,
+          stage: stage,
+          division: division,
+        };
+      }
+
+      function displayResult(result) {
+        const resultDiv = document.getElementById("result");
+        const resultContent = document.getElementById("resultContent");
+
+        resultDiv.className = "result";
+        resultDiv.style.display = "block";
+
+        const percentageFormatted = result.percentage.toFixed(2);
+        let performanceText = "";
+
+        if (result.percentage >= 95) {
+          performanceText = " - GM Class Run";
+        } else if (result.percentage >= 85) {
+          performanceText = " - M Class Run";
+        } else if (result.percentage >= 75) {
+          performanceText = " - A Class Run";
+        } else if (result.percentage >= 60) {
+          performanceText = " - B Class Run";
+        } else if (result.percentage >= 40) {
+          performanceText = " - C Class Run";
+        } else {
+          performanceText = " - D Class Run";
+        }
+
+        resultContent.innerHTML = `
+                <strong>Your Score: ${percentageFormatted}%${performanceText}</strong>
+                <div class="calculation-details">
+                    <p><strong>Calculation Details:</strong></p>
+                    <p>Stage: ${result.stage} (${result.division})</p>
+                    <p>Your HF Score: ${result.hf}</p>
+                    <p>HHF Standard: ${result.hhf}</p>
+                    <p>Formula: ${result.hf} ÷ ${result.hhf} × 100 = ${percentageFormatted}%</p>
+                </div>
+            `;
+      }
+
+      function displayError(message) {
+        const resultDiv = document.getElementById("result");
+        const resultContent = document.getElementById("resultContent");
+
+        resultDiv.className = "result error";
+        resultDiv.style.display = "block";
+
+        resultContent.innerHTML = `<strong>Error:</strong> ${message}`;
+      }
+
+      document
+        .getElementById("hfForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const stage = document.getElementById("stage").value;
+          const division = document.getElementById("division").value;
+          const score = parseFloat(document.getElementById("score").value);
+
+          if (!stage || !division || isNaN(score)) {
+            displayError("Please fill in all fields with valid values.");
+            return;
+          }
+
+          if (score < 0) {
+            displayError("Score cannot be negative.");
+            return;
+          }
+
+          try {
+            const result = getScores(stage, score, division);
+            displayResult(result);
+          } catch (error) {
+            displayError(error.message);
+          }
+        });
+    </script>
+  </body>
+</html>
